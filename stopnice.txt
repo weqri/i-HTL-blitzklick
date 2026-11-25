@@ -1,0 +1,11 @@
+Prazna stran s canvasom: ustvari whackamole.html z ogrodjem (<canvas> + <script>). Preizkus: v konzoli ni napak. Za test lahko narišeš en pravokotnik.
+Narisane luknje: naredi polje holes (3×3) in jih v draw() nariši kot elipse. Preizkus: vidiš 9 lukenj v mreži.
+Game loop: dodaj requestAnimationFrame, deltaTime, funkciji update(dt) in draw(). Preizkus: nekaj se premika ali šteje (npr. izpiši čas na zaslon).
+Krtek se pojavi in izgine: vsaka luknja dobi state (hidden / up) in timer. Vsakih nekaj sekund se ena naključna luknja odpre, čez čas se zapre. Preizkus: krtki skačejo naključno.
+Klik na krtka: pointerdown, preračun koordinat miške glede na canvas, preverjanje razdalje do krtka. Zadetek ga skrije. Preizkus: klik na krtka ga odstrani, klik mimo ne naredi ničesar.
+Točke: spremenljivka score, +1 za zadetek, izpis na zaslon. Preizkus: število raste.
+Časovnik in konec igre: timeLeft odšteva od 30 s. Ob 0 se igra ustavi in izpiše rezultat. Preizkus: igra se res konča.
+Stanja igre: menu → playing → over. Gumb “Začni” in “Igraj znova”. Preizkus: lahko odigraš več iger zapored.
+Težavnost: krtki se pojavljajo vse hitreje in ostanejo gor vse krajši čas. Preizkus: konec igre je opazno težji kot začetek.
+Izgled in občutek: krtek izhaja iz luknje (clip), animacija zadetka, zvok, kladivo namesto kurzorja, miss/penalty. Preizkus: igra je prijetna za igrati.
+Dodatki (neobvezno): najboljši rezultat v localStorage, bombe, ki jih ne smeš zadeti, zlati krtek za več točk, podpora za telefon.

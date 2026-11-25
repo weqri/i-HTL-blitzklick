@@ -1,0 +1,5 @@
+canvas {
+    display: block;
+    border: 10px solid #000;
+    cursor: url("img/hammer.png") 8 17, auto;
+}
