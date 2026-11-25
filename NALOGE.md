@@ -1,137 +1,283 @@
-# iHTL Blitzklick: naloge po vrsti
+# iHTL Blitzklick: naloge
 
-**L** = Luka, **M** = Matija. Vsaka naloga = en **Issue** + ena **veja** + en **Pull Request**, ki ga pregleda drugi.
-
-## Zakaj ne bo konfliktov
-Konflikt nastane samo, kadar oba hkrati spreminjata **iste vrstice v isti datoteki**. Zato:
-
-1. **Vsak ima svoje datoteke.** Datoteke drugega ne spreminjaš. Če nekaj rabiš, napišeš komentar v njegov Issue.
-2. **Skupne spremenljivke in imena funkcij se dogovorita vnaprej** (faza 0). Potem lahko vsak dela v svoji datoteki in kliče funkcije drugega, tudi če jih ta še ni dokončal.
-3. **Naloge v isti vrstici tabele delata hkrati.** Naslednjo vrstico začneta šele, ko sta oba PR-ja zmergana in sta oba naredila *Pull origin* na `main`.
+🔵 **Luka**: igra (`igra.js`, `shop.js`)
+🟢 **Matija**: zasloni (`zasloni.js`, `lestvica.js`)
 
 ---
 
-## Faza 0: struktura (skupaj, ena ura)
+## 📌 Pravila za delo brez konfliktov
 
-Naredi **en** človek (predlog: L), drugi gleda. Ko je zmergano, oba potegneta `main`.
+Konflikt nastane samo, kadar oba hkrati spreminjata **iste vrstice v isti datoteki**.
+
+1. **Vsak ima svoje datoteke.**
+   - Datoteke drugega ne spreminjaš.
+   - Če nekaj rabiš, napišeš komentar v njegov Issue.
+
+2. **Imena se dogovorita vnaprej** (korak 0).
+   - Tako lahko vsak kliče funkcije drugega, tudi če še niso dokončane.
+
+3. **En korak = en Issue + ena veja + en Pull Request.**
+   - Ime veje: `luka/3-klik`, `matija/3-casovnik`
+   - PR zmerga **drugi**, ne ti. Tako drugi vedno ve, kaj se je spremenilo.
+
+4. **Naslednji korak začneta šele, ko sta oba končala prejšnjega.**
+   - Oba PR-ja zmergana
+   - Oba naredita *Pull origin* na `main`
+
+---
+
+## 🧱 Korak 0: struktura (skupaj, ena ura)
+
+Naredi **en** (predlog: Luka), drugi gleda. Ko je zmergano, oba potegneta `main`.
+
+### Mape in datoteke
 
 ```
 blitzklick/
-  index.html            ← preimenuj Hausaufgaben-Hammer.html (za GitHub Pages)
+  index.html          ← preimenuj Hausaufgaben-Hammer.html (za GitHub Pages)
   css/style.css
-  js/stanje.js          ← skupne spremenljivke (samo dogovor, malo kode)
-  js/igra.js            ← L: polje, fotografije, klik, točke
-  js/zasloni.js         ← M: start, konec runde, preklapljanje zaslonov, časovnik
-  js/shop.js            ← L (faza 2)
-  js/lestvica.js        ← M (faza 2)
-  img/ucitelji/         ← fotografije učiteljev
-  img/kladiva/          ← slike kladiv za shop
+  js/stanje.js        ← skupne spremenljivke
+  js/igra.js          🔵 polje, fotografije, klik, točke
+  js/zasloni.js       🟢 zasloni, časovnik, konec runde
+  js/shop.js          🔵 (faza 2)
+  js/lestvica.js      🟢 (faza 2)
+  img/ucitelji/       ← fotografije učiteljev
+  img/kladiva/        ← slike kladiv za shop
   sounds/
 ```
 
-`index.html` naloži vse JS datoteke z ločenimi `<script src="...">` na koncu `<body>`. **Vrstni red je pomemben:** najprej `stanje.js`, nato ostale. Ker so vse globalne (kot pri pouku), lahko ena datoteka kliče funkcijo iz druge.
+### Povezava JS datotek
+- V `index.html` vsako datoteko z `<script src="...">` na konec `<body>`.
+- **Najprej `stanje.js`**, nato ostale.
+- Vse so globalne (kot pri pouku), zato ena datoteka lahko kliče funkcijo iz druge.
 
-**Dogovor (zapišita ga v `stanje.js` kot komentarje + začetne vrednosti):**
+### Dogovor v `stanje.js`
 
-| Ime | Kaj je | Kdo ga spreminja |
-|---|---|---|
-| `score` | točke v trenutni rundi | igra.js |
-| `mode` | `"timed"` ali `"infinite"` | zasloni.js |
-| `running` | ali runda teče (`true`/`false`) | zasloni.js |
-| `playerName` | ime igralca ali `""` za gosta | zasloni.js (kasneje login) |
-| `startGame()` | začne igro na polju (pobriše točke, zažene timer fotografij) | **napiše L**, kliče M |
-| `stopGame()` | ustavi timer fotografij, skrije vse | **napiše L**, kliče M |
-| `showScreen(ime)` | pokaže en zaslon, skrije ostale | **napiše M**, kliče kdorkoli |
+**Spremenljivke:**
+- `score`: točke v trenutni rundi. Spreminja 🔵
+- `mode`: `"timed"` ali `"infinite"`. Spreminja 🟢
+- `running`: ali runda teče (`true` / `false`). Spreminja 🟢
+- `playerName`: ime igralca, `""` za gosta. Spreminja 🟢
 
-Dokler funkcija ni narejena, je lahko prazna: `function startGame() { }`. Tako drugi že lahko testira.
+**Funkcije:**
+- `startGame()`: počisti točke, zažene pojavljanje fotografij. Napiše 🔵, kliče 🟢
+- `stopGame()`: ustavi fotografije, vse skrije. Napiše 🔵, kliče 🟢
+- `showScreen(ime)`: pokaže en zaslon, ostale skrije. Napiše 🟢, kliče kdorkoli
 
----
-
-## Faza 1: igra deluje (gost, brez shopa)
-
-| Korak | Luka (`igra.js`) | Matija (`zasloni.js`, `index.html`, `style.css`) |
-|---|---|---|
-| **1** | Canvas se prilagodi oknu (`resize`), 9 lukenj, funkcija `draw()` | Startni zaslon v HTML: naslov, gumba **Timed** in **Infinite**, gumb *Als Gast spielen*. Funkcija `showScreen()` |
-| **2** | Seznam fotografij + `setInterval`: naključna luknja + naključna fotografija se pokaže in izgine | HUD nad canvasom: **točke** in **čas**. Ozadje strani in osnovni videz (glej *Podrobnosti*) |
-| **3** | Klik: zadetek samo, če `running` in je na polju fotografija. `score++`, fotografija izgine. `startGame()` / `stopGame()` | Časovnik 30 s za Timed, gumb **Runde beenden** za Infinite. Ob koncu pokliče `stopGame()` in pokaže zaslon *konec runde* |
-| **4** | Barvni robovi z **utežnim naključjem**: brez roba 1, zelena 2, vijolična 5, zlata 10. Zlata najredkejša | Zaslon *konec runde*: prikaz točk, polje za ime (gost), gumb *Nochmal* in *Zurück* |
-
-✅ **Mejnik:** igro se da igrati od začetka do konca v obeh načinih.
+💡 Dokler funkcija ni narejena, je lahko prazna: `function startGame() { }`. Tako drugi že lahko testira.
 
 ---
 
-## Faza 2: shop in lestvica (lokalno, `localStorage`)
+## 🎮 Faza 1: igra deluje (gost, brez shopa)
 
-| Korak | Luka (`shop.js`) | Matija (`lestvica.js`) |
-|---|---|---|
-| **5** | **Guthaben** v `localStorage`: ob koncu runde se točke prištejejo. Prikaz na startnem zaslonu | Lestvica v `localStorage`: shrani `{ime, mode, score}`. Prikaz dveh tabel (Timed / Infinite), padajoče po točkah |
-| **6** | Shop zaslon: seznam kladiv (ime, slika, cena). Nakup: preveri denar, odštej, odkleni. Shrani kupljena | Gumb *In Rangliste eintragen* na zaslonu konca runde. Gost vpiše ime, sicer se vzame `playerName` |
-| **7** | Izbira kladiva: kurzor se zamenja (`canvas.style.cursor = ...`) | Navigacija med zasloni: Start ↔ Shop ↔ Rangliste ↔ Igra |
+### Korak 1
 
-✅ **Mejnik:** vse iz opisa projekta deluje za goste.
+🔵 **Luka: igralno polje**
+- Canvas se prilagodi velikosti okna (tudi ob spremembi okna)
+- 9 lukenj v mreži 3 × 3
+- Funkcija `draw()`, ki nariše vse na novo
+- *Preizkus:* spremeniš velikost okna, luknje ostanejo lepo razporejene
 
-> V tej fazi se `index.html` in `style.css` spreminjata pri obeh (novi zasloni). Dogovor: **vsak doda svoj zaslon kot en blok `<div id="...">` na koncu** in svoj CSS na konec `style.css` pod komentar `/* === SHOP === */`. Tako se vrstice ne prekrivajo.
+🟢 **Matija: startni zaslon**
+- Naslov igre
+- Gumba **Timed** in **Infinite**
+- Gumb *Als Gast spielen*
+- Funkcija `showScreen()`
+- *Preizkus:* klik na gumb skrije start in pokaže igro
+
+### Korak 2
+
+🔵 **Luka: fotografije**
+- Seznam fotografij (za zdaj krtki iz `img/`)
+- `setInterval`: izbere naključno luknjo in naključno fotografijo
+- Fotografija je vidna kratek čas, nato izgine
+- *Preizkus:* fotografije se pojavljajo na različnih mestih
+
+🟢 **Matija: HUD in videz**
+- Nad canvasom prikaz **točk** in **časa**
+- Ozadje strani (glej *Podrobnosti* spodaj)
+- Osnovni videz gumbov in pisave
+- *Preizkus:* stran izgleda kot igra, ne kot prazna stran
+
+### Korak 3
+
+🔵 **Luka: klik**
+- Klik šteje samo, če je `running` in je v luknji fotografija
+- Zadetek: `score` se poveča, fotografija takoj izgine
+- Napiše `startGame()` in `stopGame()`
+- *Preizkus:* klik na fotografijo da točko, klik mimo ne
+
+🟢 **Matija: časovnik in konec runde**
+- **Timed:** odštevanje 30 s, ob 0 se runda konča
+- **Infinite:** brez časa, gumb **Runde beenden**
+- Ob koncu pokliče `stopGame()` in pokaže zaslon *konec runde*
+- *Preizkus:* runda se konča v obeh načinih
+
+### Korak 4
+
+🔵 **Luka: barvni robovi**
+- Vsaka fotografija dobi rob z **utežnim naključjem**:
+  - brez roba: 1 točka (najpogosteje)
+  - 🟩 zelena: 2 točki
+  - 🟪 vijolična: 5 točk
+  - 🟨 zlata: 10 točk (najredkeje)
+- *Preizkus:* zlato vidiš redko, točke se pravilno prištejejo
+
+🟢 **Matija: zaslon konec runde**
+- Prikaz doseženih točk
+- Polje za ime (za goste)
+- Gumba *Nochmal* in *Zurück*
+- *Preizkus:* lahko odigraš več rund zapored
+
+### ✅ Mejnik: igro se da odigrati od začetka do konca v obeh načinih
 
 ---
 
-## Faza 3: podrobnosti (lahko vzporedno, vsak svoj seznam)
+## 🛒 Faza 2: shop in lestvica (lokalno)
 
-**Luka (igra):**
-- Fotografija se pokaže z animacijo (zraste iz luknje) namesto da se kar pojavi
+⚠️ V tej fazi oba spreminjata `index.html` in `style.css` (novi zasloni).
+- Vsak doda svoj zaslon kot en `<div id="...">` **na konec** `<body>`.
+- CSS vsak doda **na konec** `style.css` pod svoj komentar, npr. `/* === SHOP === */`.
+- Tako se vrstice ne prekrivajo.
+
+### Korak 5
+
+🔵 **Luka: Guthaben**
+- Ob koncu runde se točke prištejejo k Guthaben
+- Shrani v `localStorage`, da ostane po zaprtju brskalnika
+- Prikaz Guthaben na startnem zaslonu
+- *Preizkus:* zapreš in odpreš stran, Guthaben ostane
+
+🟢 **Matija: lestvica**
+- Shrani vnos `{ime, mode, score}` v `localStorage`
+- Dve tabeli: Timed in Infinite
+- Razvrščeno po točkah, od največ do najmanj
+- *Preizkus:* več vnosov, vrstni red je pravilen
+
+### Korak 6
+
+🔵 **Luka: shop**
+- Seznam kladiv: ime, slika, cena
+- Nakup: preveri, ali je dovolj denarja, odšteje ceno, odklene kladivo
+- Kupljena kladiva shrani v `localStorage`
+- *Preizkus:* brez denarja ne moreš kupiti, kupljeno ostane
+
+🟢 **Matija: vpis v lestvico**
+- Gumb *In Rangliste eintragen* na zaslonu konec runde
+- Gost vpiše ime, prijavljen igralec ne (vzame `playerName`)
+- *Preizkus:* rezultat se pokaže v pravi tabeli
+
+### Korak 7
+
+🔵 **Luka: izbira kladiva**
+- V shopu izbereš eno od kupljenih kladiv
+- Kurzor nad canvasom se zamenja v izbrano kladivo
+- *Preizkus:* v naslednji rundi je kurzor novo kladivo
+
+🟢 **Matija: navigacija**
+- Gumbi za premik med zasloni: Start, Shop, Rangliste, Igra
+- Iz vsakega zaslona se lahko vrneš na start
+- *Preizkus:* nikjer se ne "zatakneš"
+
+### ✅ Mejnik: vse iz opisa projekta deluje za goste
+
+---
+
+## ✨ Faza 3: podrobnosti
+
+Vsak dela na svojem seznamu, v poljubnem vrstnem redu.
+
+🔵 **Luka: igra**
+- Fotografija zraste iz luknje, namesto da se kar pojavi
 - Animacija zadetka: kratek blisk, `+5` leti navzgor v barvi roba
-- Težavnost: proti koncu Timed runde se fotografije pojavljajo hitreje in so krajši čas vidne
-- Ena fotografija naj ne pride dvakrat zapored v isto luknjo
-- Dvojni klik na isto fotografijo ne sme dati dvakrat točk
+- Težavnost: proti koncu runde se fotografije pojavljajo hitreje in so vidne krajši čas
+- Ista fotografija ne pride dvakrat zapored v isto luknjo
+- Dvojni klik na isto fotografijo ne da dvakrat točk
 - Zvoki: zadetek, zlati zadetek, zgrešen klik
 
-**Matija (zasloni):**
+🟢 **Matija: zasloni**
 - Odštevanje **3, 2, 1, Los!** pred začetkom runde
 - Zadnjih 5 sekund čas utripa rdeče
-- *Neuer Rekord!* na zaslonu konca, če je rezultat najboljši
-- Gumb za vklop/izklop zvoka (shrani v `localStorage`)
+- *Neuer Rekord!*, če je rezultat najboljši
+- Gumb za vklop / izklop zvoka (shrani v `localStorage`)
 - Ikona zavihka (favicon) in naslov strani
-- Videz na telefonu / tabletu (gumbi dovolj veliki, nič ne gre čez rob)
+- Videz na telefonu in tabletu: gumbi dovolj veliki, nič ne gre čez rob
 
 ---
 
-## Faza 4: backend (login + skupna lestvica)
+## 🔐 Faza 4: backend (login + skupna lestvica)
 
-Predlog: **Firebase** (brezplačen, Authentication + Firestore, deluje z GitHub Pages, ne rabita lastnega strežnika). Pred tem vprašajta učitelja, ali je to OK ali naj bo PHP + MySQL na šolskem strežniku.
+Predlog: **Firebase**
+- Brezplačen
+- Prijava (Authentication) in baza (Firestore)
+- Deluje z GitHub Pages, ne rabita svojega strežnika
 
-| Korak | Luka | Matija |
-|---|---|---|
-| **8** | Firebase projekt (eden ga ustvari, drugega doda), `js/firebase.js` s povezavo | Zaslon za prijavo in registracijo (HTML/CSS) |
-| **9** | Registracija + prijava + odjava, `playerName` iz računa | Skupna lestvica: `lestvica.js` piše/bere iz Firestore namesto `localStorage` |
-| **10** | Guthaben in kupljena kladiva se za prijavljene shranjujejo v Firestore, za goste ostane `localStorage` | Varnostna pravila v Firestore: vsak lahko piše samo svoj račun, lestvica samo dodajanje |
+⚠️ Pred začetkom vprašajta učitelja, ali je Firebase OK ali naj bo raje PHP + MySQL na šolskem strežniku.
 
-✅ **Mejnik:** vse iz opisa projekta deluje, tudi na drugi napravi.
+### Korak 8
+
+🔵 **Luka: povezava**
+- Ustvari Firebase projekt, doda Matijo
+- `js/firebase.js` s povezavo
+
+🟢 **Matija: zaslon za prijavo**
+- HTML in CSS za prijavo in registracijo
+- Gumb *Abmelden*
+
+### Korak 9
+
+🔵 **Luka: prijava**
+- Registracija, prijava, odjava
+- `playerName` se vzame iz računa
+
+🟢 **Matija: skupna lestvica**
+- `lestvica.js` piše in bere iz Firestore namesto iz `localStorage`
+- Vsi vidijo iste rezultate
+
+### Korak 10
+
+🔵 **Luka: shranjevanje računa**
+- Prijavljeni: Guthaben in kladiva v Firestore
+- Gostje: ostane `localStorage`
+
+🟢 **Matija: varnost**
+- Varnostna pravila v Firestore:
+  - vsak lahko spreminja samo svoj račun
+  - v lestvico se lahko samo dodaja, ne briše
+
+### ✅ Mejnik: vse iz opisa projekta deluje, tudi na drugi napravi
 
 ---
 
-## Faza 5: zaključek (skupaj)
-- Objava na **GitHub Pages**, test na dveh računalnikih in telefonu
-- Vsak preizkusi del drugega in odpre Issue za vsako napako
+## 🚀 Faza 5: zaključek (skupaj)
+
+- Objava na **GitHub Pages**
+- Test na dveh računalnikih in na telefonu
+- Vsak preizkusi del drugega in za vsako napako odpre Issue
 - Kratek `README.md`: kaj je igra, kako se igra, kdo je kaj naredil
 
 ---
 
-## Podrobnosti, ki jih ne pozabita
+## 📝 Podrobnosti, ki jih ne pozabita
 
-**Videz**
-- **Ozadje:** npr. travnik ali lesena miza za igralno polje, za strani barve i:HTL. Slika ozadja v CSS (`background-image` na `body`), polje na canvasu naj ima luknje z rjavim robom in senco
-- Ena pisava za vse (Google Fonts, npr. *Press Start 2P*, ker je kladivo pixel art)
-- Enotne barve gumbov, `:hover` učinek
+### Videz
+- **Ozadje:** trava ali lesena miza za igralno polje, barve i:HTL za zaslone
+- Ozadje strani kot slika v CSS (`background-image` na `body`)
+- Luknje z rjavim robom in senco
+- Ena pisava za vse, npr. *Press Start 2P* (Google Fonts), ker je kladivo pixel art
+- Enaki gumbi povsod, učinek ob `:hover`
 
-**Fotografije učiteljev**
-- Vse **enake velikosti in kvadratne** (npr. 300×300), obrezane na obraz
-- Pisno dovoljenje vsakega učitelja. **Pazi:** GitHub Pages zahteva javni repozitorij, torej so fotografije javno na internetu. Učitelji morajo vedeti in se strinjati s tem
-- Dokler fotografij ni, uporabljajta krtke iz `img/` kot nadomestek
+### Fotografije učiteljev
+- Vse **kvadratne in enake velikosti** (npr. 300 × 300), obrezane na obraz
+- **Pisno dovoljenje** vsakega učitelja
+- ⚠️ GitHub Pages zahteva javni repozitorij, torej so fotografije **javno na internetu**. Učitelji morajo to vedeti in se strinjati.
+- Dokler fotografij ni, uporabljajta krtke iz `img/`
 
-**Jezik**
-- Opis projekta je v nemščini, zato naj bodo tudi vsi napisi v igri nemški (*Runde beenden*, *Punkte*, *Zeit* ...)
+### Jezik
+- Opis projekta je v nemščini, zato vsi napisi v igri v nemščini
+- *Runde beenden*, *Punkte*, *Zeit*, *Nochmal* ...
 
-**Delo z Gitom**
+### Git
 - Na začetku vsake ure: *Pull origin* na `main`
-- Vejo poimenujta po nalogi: `luka/3-klik`, `matija/3-casovnik`
-- PR naj bo majhen (ena naloga). Drugi ga pregleda in zmerga, ne vsak svojega
-- Veja `test` naj se zbriše, ko je `main` urejen
+- Majhni PR-ji, en korak na PR
+- Veja `test` se zbriše, ko je `main` urejen
