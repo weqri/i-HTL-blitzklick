@@ -1,8 +1,6 @@
-let score;
-let mode; // 1 time, 2 endless
-let running; // true or false
-let playerName; // if guest: "Guest"
-function startGame(){
-    score = 0;
-    running = true;
-}
+let score = 0;
+let mode = 0; // 0 undefined, 1 time, 2 endless
+let shopmoney = 0;
+let running = false; // true or false
+let playerName = ""; // if guest: ""
+

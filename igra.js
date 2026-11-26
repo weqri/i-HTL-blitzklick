@@ -1,0 +1,2 @@
+function startGame() {}
+function stopGame() {}
